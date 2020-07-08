@@ -1,6 +1,6 @@
 package structuredApi
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.types._
 
 object Datasources extends App {
@@ -9,32 +9,37 @@ object Datasources extends App {
     .config("spark.master","local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
 
-  val carsSchema = StructType(Array(
-    StructField("Name", StringType),
-    StructField("Miles_per_Gallon", DoubleType),
-    StructField("Cylinders", LongType),
-    StructField("Displacement", DoubleType),
-    StructField("Horsepower", LongType),
-    StructField("Weight_in_lbs", LongType),
-    StructField("Acceleration", DoubleType),
-    StructField("Year", DateType),
-    StructField("Origin", StringType)
-  ))
+  val moviesDF = spark.read.json("src/main/resources/data/movies.json")
 
-  val carsDF = spark.read
-    .format("json")
-    .schema(carsSchema)
-    .options(Map(
-      "mode" -> "failFast"
-      ,"path" -> "src/main/resources/data/cars.json"
-      ,"dateFormat" -> "YYYY-MM-dd"
-      ,"allowSingleQuotes" -> "true"
-      ,"compression" -> "uncompressed"
-    ))
-    .load()
+  moviesDF.write
+      .mode(SaveMode.Overwrite)
+      .format("csv")
+      .option("sep","\t")
+      .option("header","true")
+      .save("src/main/resources/data/movies.csv")
 
-  carsDF.show()
-  spark.close()
+  moviesDF.write
+    .mode(SaveMode.Overwrite)
+    .save("src/main/resources/data/movies.parquet")
+
+  val driver = "org.postgresql.Driver"
+  val url = "jdbc:postgresql://localhost:5432/rtjvm"
+  val user = "docker"
+  val password = "docker"
+  val dbtable = "public.movies"
+
+  moviesDF.write
+      .format("jdbc")
+      .mode(SaveMode.Overwrite)
+      .options(Map(
+        "driver" -> driver
+        ,"url" -> url
+        ,"user" -> user
+        ,"password" -> password
+        ,"dbtable" -> dbtable
+      ))
+      .save()
+  moviesDF.printSchema()
+  moviesDF.show()
 }
