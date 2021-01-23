@@ -181,6 +181,7 @@ unit-tests.log
 work/
 docs/.jekyll-metadata
 
+
 # For Hive
 TempStatsStore/
 metastore/
@@ -188,6 +189,7 @@ metastore_db/
 sql/hive-thriftserver/test_warehouses
 warehouse/
 spark-warehouse/
+
 
 # For R session data
 .RData
@@ -201,5 +203,8 @@ spark-warehouse/
 # For SBT
 .jvmopts
 
+# For project outputs
+taxi-data/
+taxi_results.csv/.
 
 # End of https://www.gitignore.io/api/sbt,scala,spark,intellij
